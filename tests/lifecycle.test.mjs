@@ -4,7 +4,7 @@ import { test } from 'node:test';
 // Native tests exercise mounting/presses. This boundary harness can delay a
 // host clock response and observe AbortSignals (which do not cross native hooks).
 async function harness() {
-  const { register } = await import(`../mods/clawd-radio/hooks/register.mjs?case=${crypto.randomUUID()}`);
+  const { register } = await import(`../mods/clawd/hooks/register.mjs?case=${crypto.randomUUID()}`);
   const hooks = new Map();
   const clips = [];
   let now = 1000;

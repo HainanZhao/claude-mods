@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-const motion = await import('../mods/clawd-radio/hooks/motion.mjs').catch(() => ({}));
+const motion = await import('../mods/clawd/hooks/motion.mjs').catch(() => ({}));
 
 test('walks at five columns per second', () => {
   assert.equal(typeof motion.createMotion, 'function', 'motion module must exist');
