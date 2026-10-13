@@ -4,8 +4,8 @@
   "metadata": { "description": "Playful native Claude Code mods" },
   "plugins": [
     {
-      "name": "clawd-whip",
-      "source": "./mods/clawd-whip",
+      "name": "clawd-radio",
+      "source": "./mods/clawd-radio",
       "version": "2.0.0",
       "description": "A one-row radio above the prompt with 28 in-terminal stations, plus Clawd, Claude Code's pixel crab, to show and whip."
     }

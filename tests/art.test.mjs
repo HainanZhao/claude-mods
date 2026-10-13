@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createMotion, jumpMotion, pauseMotion, whipMotion } from '../mods/clawd-whip/hooks/motion.mjs';
-import { SPRITE_ROWS, SPRITE_WIDTH, WHIP_REACH, quadrantRuns, lanePixels } from '../mods/clawd-whip/hooks/art.mjs';
+import { createMotion, jumpMotion, pauseMotion, whipMotion } from '../mods/clawd-radio/hooks/motion.mjs';
+import { SPRITE_ROWS, SPRITE_WIDTH, WHIP_REACH, quadrantRuns, lanePixels } from '../mods/clawd-radio/hooks/art.mjs';
 
 // The lane is two pixels per column; `x` and the slices below are in pixels.
 const W = SPRITE_WIDTH * 2;

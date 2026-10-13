@@ -1,4 +1,4 @@
-# Clawd Whip
+# Clawd Radio
 
 A one-row radio above Claude Code's prompt plays Claude FM (the lo-fi stream
 `/radio` opens in a browser) and 27 other stations right in the terminal: click
@@ -14,7 +14,7 @@ or jumps in place when no task is running.
 Requires **Claude Code 2.1.296 or newer**; tested on 2.1.296. From this directory:
 
 ```sh
-claude --plugin-dir ./mods/clawd-whip
+claude --plugin-dir ./mods/clawd-radio
 ```
 
 Clawd appears just above the input prompt. While a task runs, a click
@@ -27,19 +27,19 @@ From this directory:
 
 ```sh
 claude plugin marketplace add .
-claude plugin install clawd-whip@claude-mods --scope user
+claude plugin install clawd-radio@claude-mods --scope user
 ```
 
 Restart Claude Code after installing. To remove it:
 
 ```sh
-claude plugin uninstall clawd-whip@claude-mods --scope user
+claude plugin uninstall clawd-radio@claude-mods --scope user
 ```
 
 If you installed an earlier version, refresh it and restart Claude Code:
 
 ```sh
-claude plugin update clawd-whip@claude-mods
+claude plugin update clawd-radio@claude-mods
 ```
 
 ## Controls
@@ -115,7 +115,7 @@ npm run sound:generate
 
 - `tests/`: movement, burst timing, reflection, resizing, art clipping and effect phases,
   delayed clock responses at session exit, and audio cancellation.
-- `mods/clawd-whip/tests/`: native UI, clicks, audio request, audio failure, radio play/stop, station cycling,
+- `mods/clawd-radio/tests/`: native UI, clicks, audio request, audio failure, radio play/stop, station cycling,
   compact layout, survey composition, headless sessions, and timer shutdown.
 
 The native harness validates the actual mod handlers and element trees on

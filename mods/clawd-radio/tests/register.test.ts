@@ -5,7 +5,7 @@ const props = {
   scroll: { offset: 0, bodyRows: 12 }, view: {},
 };
 
-describe('crab whip', () => {
+describe('clawd radio', () => {
   const coreBand = () => ({ type: 'Box' as const, props: {}, children: [] });
   // Clawd is hidden until shown; most tests start with it shown, as remembered.
   const crabOn = (on: any) => on('store.get', ($: unknown, e: { key: string }) =>
@@ -27,7 +27,7 @@ describe('crab whip', () => {
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     on('turn.start', ($, e) => ({ turnId: e.turnId }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, bodyColumns: 75, maxRows: 10 } });
     expect(await ui.find({ key: 'radio' })).toBeDefined();
     await $.turn.start({ text: 'task', turnId: 'first' });
@@ -44,7 +44,7 @@ describe('crab whip', () => {
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     on('turn.start', ($, e) => ({ turnId: e.turnId }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     const idle = await art(ui);
     await clock.advance(2000);
     expect(await art(ui)).toBe(idle);
@@ -62,7 +62,7 @@ describe('crab whip', () => {
       on('session.start', ($, e) => ({ cwd: e.cwd }));
       on('audio.play', ($, e) => { clips.push(e); return { value: undefined }; });
       await $.session.start({ surface, isInteractive: true, cwd: '/work' });
-      const ui = await $.ui.mount({ plugin: 'clawd-whip', surface, component: 'AbovePrompt', props });
+      const ui = await $.ui.mount({ plugin: 'clawd-radio', surface, component: 'AbovePrompt', props });
       const idle = await art(ui);
       expect(await ui.find({ key: 'pause' })).toBeUndefined();
       expect(await ui.find({ key: 'mute' })).toBeUndefined();
@@ -90,7 +90,7 @@ describe('crab whip', () => {
     on('turn.start', ($, e) => ({ turnId: e.turnId }));
     on('audio.play', () => ({ value: undefined }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     await $.turn.start({ text: 'task', turnId: 'first' });
     await whip(ui);
     await clock.advance(400);
@@ -134,7 +134,7 @@ describe('crab whip', () => {
     on('process.run', ($, e) => { runs.push(e.argv); return { value: { exitCode: 0, stdout: 'https://stream.example/live.m3u8\n', stderr: '' } }; });
     const tick = player(on, spawned, () => { killed = true; });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     expect(await selected(ui)).toBe('Claude FM');
     const bars = async () => (await ui.find({ key: 'radio' }))?.text;
     expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Play');
@@ -170,7 +170,7 @@ describe('crab whip', () => {
     on('process.run', () => ({ value: { exitCode: 0, stdout: 'https://stream.example/live.m3u8\n', stderr: '' } }));
     const tick = player(on, [], () => { killed = true; });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     await $.turn.start({ text: 'task', turnId: 'first' });
     await ui.press({ key: 'radio' });
     await settle();
@@ -188,19 +188,19 @@ describe('crab whip', () => {
     crabOn(on);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const wide = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+    const wide = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, bodyColumns: 120 } });
     expect(await wide.find({ key: 'crab-lane' })).toBeDefined();
     const many = await stations(wide);
     expect(many.slice(0, 5)).toEqual(['Claude FM', 'Lofi Girl', 'Synthwave', 'Groove Salad', 'Fluid']);
     expect(many.length).toBeGreaterThan(8);
     expect(many.at(-1)).toBe('›');
-    const standard = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const standard = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     const shown = await stations(standard);
     expect(shown[0]).toBe('Claude FM');
     expect(shown.at(-1)).toBe('›');
     expect(shown.length).toBeGreaterThan(4);
-    const tab = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+    const tab = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, bodyColumns: 30 } });
     expect(await tab.find({ key: 'crab-lane' })).toBeDefined();
     expect(await stations(tab)).toEqual(['Claude FM', '›']);
@@ -221,7 +221,7 @@ describe('crab whip', () => {
     on('process.run', ($, e) => { runs.push(e.argv); return { value: { exitCode: 0, stdout: 'https://stream.example/live.m3u8\n', stderr: '' } }; });
     const tick = player(on, spawned, () => { killed += 1; });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, bodyColumns: 120 } });
     // SomaFM serves plain MP3, so ffplay plays it without yt-dlp.
     await ui.press({ key: 'station-3' });
@@ -259,7 +259,7 @@ describe('crab whip', () => {
     on('store.get', ($, e) => ({ value: store.get(e.key) }));
     on('store.set', ($, e) => { store.set(e.key, e.value); return { value: undefined }; });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     await ui.press({ key: 'station-1' });
     await settle();
     expect(store.get('station')).toBe('Lofi Girl');
@@ -277,7 +277,7 @@ describe('crab whip', () => {
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     on('process.run', () => { throw new Error('yt-dlp: not found'); });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, bodyColumns: 120 } });
     await ui.press({ key: 'radio' });
     await settle();
@@ -293,7 +293,7 @@ describe('crab whip', () => {
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     on('audio.play', () => { throw new Error('No audio device'); });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     const idle = await art(ui);
     await whip(ui);
     await clock.advance(400);
@@ -308,7 +308,7 @@ describe('crab whip', () => {
     on('store.get', ($, e) => ({ value: store.get(e.key) }));
     on('store.set', ($, e) => { store.set(e.key, e.value); return { value: undefined }; });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     expect(await ui.find({ key: 'crab-lane' })).toBeUndefined();
     const labels = (await ui.findAll({ type: 'Button' })).map(button => button.props.label);
     expect(labels[0]).toBe('Play');
@@ -330,7 +330,7 @@ describe('crab whip', () => {
     crabOn(on);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, bodyColumns: 24, maxRows: 1 } });
     expect(await ui.find({ key: 'crab-lane' })).toBeUndefined();
     const labels = (await ui.findAll({ type: 'Button' })).map(button => button.props.label);
@@ -345,7 +345,7 @@ describe('crab whip', () => {
     on('ui.invalidate', () => { redraws += 1; return { value: undefined }; });
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     await $.session.start({ surface: null, isInteractive: false, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     await clock.advance(1000);
     expect(redraws).toBe(0);
     expect(await ui.find({ key: 'whip' })).toBeUndefined();
@@ -377,7 +377,7 @@ describe('crab whip', () => {
     crabOn(on);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     expect(await ui.find({ type: 'Text', text: 'Another mod' })).toBeDefined();
     await ui.redraw({ ...props, hasSurvey: true });
     expect(await ui.find({ type: 'Text', text: 'Another mod' })).toBeDefined();
@@ -390,7 +390,7 @@ describe('crab whip', () => {
     crabOn(on);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, maxRows: 2 } });
     expect(await ui.find({ type: 'Text', text: 'Another mod' })).toBeDefined();
     expect(await ui.find({ key: 'crab-lane' })).toBeUndefined();
@@ -407,7 +407,7 @@ describe('crab whip', () => {
       crabOn(on);
       on('session.start', ($, e) => ({ cwd: e.cwd }));
       await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-      const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal',
+      const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
         component: 'AbovePrompt', props: { ...props, maxRows: 7 } });
       expect((await ui.find({ key: 'crab-lane' }))?.type).toBeUndefined();
       expect(await ui.find({ key: 'crab' })).toBeDefined();
@@ -423,7 +423,7 @@ describe('crab whip', () => {
       on('turn.start', ($, e) => ({ turnId: e.turnId }));
       on('turn.complete', ($, e) => ({ text: e.answer }));
       await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-      const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+      const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
       await $.turn.start({ text: 'task', turnId: 'first' });
       await clock.advance(700);
       await $.turn.complete({ turnId: 'first', answer: '', reason, isAborted: reason === 'aborted', durationMs: 700 });
@@ -444,7 +444,7 @@ describe('crab whip', () => {
     on('session.end', () => ({ sessionId: 'test-session' }));
     on('turn.start', ($, e) => ({ turnId: e.turnId }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     const initial = await art(ui);
     await $.turn.start({ text: 'task', turnId: 'first' });
     await clock.advance(1000);
@@ -464,7 +464,7 @@ describe('crab whip', () => {
     on('turn.complete', ($, e) => ({ text: e.answer }));
     on('turn.start', ($, e) => ({ turnId: e.turnId }));
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
-    const ui = await $.ui.mount({ plugin: 'clawd-whip', surface: 'terminal', component: 'AbovePrompt', props });
+    const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     await $.turn.start({ text: 'task', turnId: 'main' });
     const before = await art(ui);
     await $.turn.complete({ turnId: 'child', agentId: 'child-agent', answer: '', reason: 'answer', isAborted: false, durationMs: 0 });

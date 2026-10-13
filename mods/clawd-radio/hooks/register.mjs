@@ -195,7 +195,7 @@ export function register(on) {
     children.push(Box({ key: 'radio-bar', flexDirection: 'row', justifyContent: 'space-between', width: Math.max(1, columns - 4),
       children: [Box({ flexDirection: 'row', gap: 2, children: controls }), toggle] }));
     return Box({ flexDirection: 'column', children: [previous,
-      Box({ key: 'clawd-whip', flexDirection: 'column', children })] });
+      Box({ key: 'clawd-radio', flexDirection: 'column', children })] });
   }).catch(($, e, next) => next(e));
 }
 

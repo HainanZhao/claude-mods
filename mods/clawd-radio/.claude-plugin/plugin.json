@@ -1,5 +1,5 @@
 {
-  "name": "clawd-whip",
+  "name": "clawd-radio",
   "version": "2.0.0",
   "description": "A one-row radio above your prompt with 28 stations played in the terminal, plus Clawd, Claude Code's pixel crab, to show and whip.",
   "author": { "name": "Claude Mods contributors" },

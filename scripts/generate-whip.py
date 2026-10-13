@@ -5,7 +5,7 @@ import random
 import struct
 import wave
 
-DESTINATION = Path(__file__).resolve().parents[1] / "mods/clawd-whip/assets/whip-crack.wav"
+DESTINATION = Path(__file__).resolve().parents[1] / "mods/clawd-radio/assets/whip-crack.wav"
 RATE = 44100
 DURATION = 0.55
 CRACK_AT = 0.12
