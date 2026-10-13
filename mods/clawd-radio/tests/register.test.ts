@@ -90,26 +90,37 @@ describe('clawd radio', () => {
     expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Pause');
   });
 
-  test('the stations scroll as a carousel centred on the selected one', async ($, on) => {
+  test('the view centres on the selected station, and the arrows page it without changing the selection', async ($, on) => {
     mock.clock(on);
     on('ui.render', coreBand);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
+    const store = new Map<string, unknown>([['station', 'Top 100']]);
+    on('store.get', ($, e) => ({ value: store.get(e.key) }));
+    on('store.set', ($, e) => { store.set(e.key, e.value); return { value: undefined }; });
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
     const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
-    const first = await stations(ui);
-    expect(first[0]).toBe('Claude FM');
-    expect(first.at(-1)).toBe('›');
-    for (let i = 0; i < 10; i += 1) await ui.press({ key: 'station-next' });
-    const middle = await stations(ui);
-    expect(await selected(ui)).toBe('Top 100');
-    expect(middle[0]).toBe('‹');
-    expect(middle.at(-1)).toBe('›');
+    const centred = await stations(ui);
+    expect(centred[0]).toBe('‹');
+    expect(centred.at(-1)).toBe('›');
     // Centred: about as many stations before the selected one as after it.
-    const at = middle.indexOf('Top 100');
-    expect(Math.abs(at - (middle.length - 1 - at))).toBeLessThanOrEqual(2);
-    const tab = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
-      component: 'AbovePrompt', props: { ...props, bodyColumns: 34 } });
-    expect(await stations(tab)).toEqual(['‹', 'Top 100', '›']);
+    const at = centred.indexOf('Top 100');
+    expect(Math.abs(at - (centred.length - 1 - at))).toBeLessThanOrEqual(2);
+    await ui.press({ key: 'station-next' });
+    const next = await stations(ui);
+    expect(next).not.toContain('Top 100');
+    // A full page on: none of the stations from before are still in view.
+    expect(next.filter(name => !'‹›'.includes(name) && centred.includes(name))).toEqual([]);
+    expect(await selected(ui)).toBeUndefined();
+    expect(store.get('station')).toBe('Top 100');
+    await ui.press({ key: 'station-prev' });
+    expect(await stations(ui)).toContain('Top 100');
+    expect(await selected(ui)).toBe('Top 100');
+    for (let pages = 0; (await stations(ui)).includes('›') && pages < 20; pages += 1) {
+      await ui.press({ key: 'station-next' });
+    }
+    const last = await stations(ui);
+    expect(last.at(-1)).toBe('NTS');
+    expect(last[0]).toBe('‹');
   });
 
   test('the selected station is bold, and orange while it plays', { timeoutMs: 15000 }, async ($, on) => {

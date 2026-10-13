@@ -6,7 +6,7 @@
     {
       "name": "clawd-radio",
       "source": "./mods/clawd-radio",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "description": "A one-row radio above the prompt with 38 stations played in the terminal."
     },
     {

@@ -43,6 +43,10 @@ const STATIONS = [
   { name: 'NTS', url: 'https://stream-relay-geo.ntslive.net/stream' },
 ];
 let station = 0;
+// The first station in view once the arrows have scrolled; null centres the
+// view on the selected station. `shown` is the window last drawn.
+let viewFrom = null;
+let shown = null;
 // A three-bar equalizer bounces at the row's end while a station plays.
 const EQ_FRAMES = ['▃▆▄', '▅▃▇', '▂▇▄', '▆▄▃', '▄▂▆', '▇▅▂'];
 let eqFrame = 0;
@@ -69,6 +73,7 @@ export function register(on) {
     if (mine !== generation) return result;
     const remembered = STATIONS.findIndex(({ name }) => name === saved);
     if (remembered >= 0) station = remembered;
+    viewFrom = null;
     active = e.isInteractive;
     if (active) {
       void radioWorker($, mine);
@@ -94,11 +99,12 @@ export function register(on) {
     const columns = Math.max(1, Math.min(240, props.bodyColumns ?? e.viewport?.columns ?? 80));
     // Four columns stay clear for the band's own [-] collapse mark.
     const width = Math.max(1, columns - 4);
-    const [left, right] = radioControls(Text, Button, width, {
-      toggle: () => toggleRadio($), pick: index => pick($, index), tune: delta => tune($, delta) });
+    // One column of padding keeps the play button off the pane's edge.
+    const [left, right] = radioControls(Text, Button, width - 1, {
+      toggle: () => toggleRadio($), pick: index => pick($, index), scroll: direction => scroll($, direction) });
     // The radio closes the band, below whatever other mods draw.
     return Box({ flexDirection: 'column', children: [previous,
-      Box({ key: 'radio-bar', flexDirection: 'row', justifyContent: 'space-between', width, children: [
+      Box({ key: 'radio-bar', flexDirection: 'row', justifyContent: 'space-between', width, paddingLeft: 1, children: [
         Box({ flexDirection: 'row', gap: 2, children: left }), ...(right ? [right] : [])] })] });
   }).catch(($, e, next) => next(e));
 }
@@ -107,7 +113,7 @@ const ORANGE = '#d77757';
 
 // The radio row, laid out like a click wheel: play/pause, then the stations as
 // a carousel centred on the selected one.
-function radioControls(Text, Button, columns, { toggle, pick, tune }) {
+function radioControls(Text, Button, columns, { toggle, pick, scroll }) {
   const playing = radio === 'on';
   // A play/pause button, two columns in every state so nothing beside it moves.
   const glyph = { off: '▶ ', error: '▶ ', tuning: '⋯ ', on: '❚❚' }[radio];
@@ -121,9 +127,15 @@ function radioControls(Text, Button, columns, { toggle, pick, tune }) {
   const right = status && Text({ ...(playing ? { color: ORANGE } : { dimColor: true }), children: status });
   // Room for station names: the button, both arrows, the right end, and the gaps.
   const room = columns - 2 - 2 * 3 - Math.max(3, status.length) - 4;
-  const span = (from, to) => STATIONS.slice(from, to).reduce((sum, { name }) => sum + name.length + 2, 0);
   let [from, to] = [0, STATIONS.length];
-  if (span(from, to) > room + 6) {
+  if (span(from, to) > room + 6 && viewFrom !== null) {
+    // Scrolled: fill forward from where the arrows left the view, and back
+    // from the end so the last page is full.
+    from = Math.max(0, Math.min(STATIONS.length - 1, viewFrom));
+    to = from + 1;
+    while (to < STATIONS.length && span(from, to + 1) <= room) to += 1;
+    while (to === STATIONS.length && from > 0 && span(from - 1, to) <= room) from -= 1;
+  } else if (span(from, to) > room + 6) {
     // Grow out from the selected station a step at a time, left then right,
     // so it stays near the centre as the list scrolls.
     [from, to] = [station, station + 1];
@@ -135,8 +147,9 @@ function radioControls(Text, Button, columns, { toggle, pick, tune }) {
   }
   const items = [state];
   // An arrow with nothing past it still holds its place, so the carousel never shifts.
-  const arrow = (key, label, delta, shown) => (shown
-    ? Button({ key, plain: true, label, onPress: () => tune(delta), children: Text({ dimColor: true, children: label }) })
+  shown = { from, to, room };
+  const arrow = (key, label, direction, visible) => (visible
+    ? Button({ key, plain: true, label, onPress: () => scroll(direction), children: Text({ dimColor: true, children: label }) })
     : Text({ children: ' ' }));
   if (from > 0 || to < STATIONS.length) items.push(arrow('station-prev', '‹', -1, from > 0));
   for (let index = from; index < to; index += 1) {
@@ -162,6 +175,8 @@ function toggleRadio($) {
 function pick($, index) {
   if (!active) return;
   if (index === station) return toggleRadio($);
+  // The view holds still, so the row doesn't recentre under the click.
+  if (viewFrom === null && shown) viewFrom = shown.from;
   stopRadio();
   station = index;
   void $.store.set('station', STATIONS[station].name).catch(() => {});
@@ -169,16 +184,23 @@ function pick($, index) {
   $.ui.invalidate('ui.render');
 }
 
-// Switching while playing retunes straight to the new station.
-function tune($, delta) {
-  if (!active) return;
-  const playing = radio === 'on' || radio === 'tuning';
-  stopRadio();
-  station = (station + delta + STATIONS.length) % STATIONS.length;
-  void $.store.set('station', STATIONS[station].name).catch(() => {});
-  if (playing) requestRadio();
+// The arrows page through the stations without touching the selection.
+function scroll($, direction) {
+  if (!active || !shown) return;
+  const { from, to, room } = shown;
+  if (direction > 0) {
+    if (to >= STATIONS.length) return;
+    viewFrom = to;
+  } else {
+    if (from <= 0) return;
+    let start = from - 1;
+    while (start > 0 && span(start - 1, from) <= room) start -= 1;
+    viewFrom = start;
+  }
   $.ui.invalidate('ui.render');
 }
+
+const span = (from, to) => STATIONS.slice(from, to).reduce((sum, { name }) => sum + name.length + 2, 0);
 
 function requestRadio() {
   radioWanted = true;
