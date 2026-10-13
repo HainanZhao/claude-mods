@@ -1,6 +1,6 @@
 {
   "name": "clawd-radio",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "A one-row radio above your prompt with 54 stations, including Singapore's, played in the terminal.",
   "author": { "name": "Claude Mods contributors" },
   "license": "MIT",

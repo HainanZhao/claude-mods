@@ -118,15 +118,19 @@ export function register(on, options = {}) {
     if (!active || props.hasSurvey) return previous;
     const { Box, Text, Button } = $.ui.resolve(e);
     const columns = Math.max(1, Math.min(240, props.bodyColumns ?? e.viewport?.columns ?? 80));
-    // Four columns stay clear for the band's own [-] collapse mark.
-    const width = Math.max(1, columns - 4);
-    // One column of padding keeps the play button off the pane's edge.
-    const [left, right] = radioControls(Text, Button, width - 1, {
+    // The band's [-] collapse mark sits at the end of its top row; when nothing
+    // is drawn above the radio, that row is ours, so we stop short of it.
+    const alone = !previous || previous.type === 'engine' || (previous.children ?? []).length === 0;
+    const width = Math.max(1, columns - (alone ? 4 : 0));
+    // A column of padding at each end keeps the buttons off the pane's edges.
+    const [left, right] = radioControls(Text, Button, width - 2, {
       toggle: () => toggleRadio($), pick: index => pick($, index), scroll: direction => scroll($, direction) });
-    // The radio closes the band, below whatever other mods draw.
+    // The radio closes the band, below whatever other mods draw. The play button
+    // and ‹ hold the left end and › the right, so neither moves as the view pages.
     return Box({ flexDirection: 'column', children: [previous,
-      Box({ key: 'radio-bar', flexDirection: 'row', justifyContent: 'space-between', width, paddingLeft: 1, children: [
-        Box({ flexDirection: 'row', gap: 2, children: left }), ...(right ? [right] : [])] })] });
+      Box({ key: 'radio-bar', flexDirection: 'row', justifyContent: 'space-between', width,
+        paddingLeft: 1, paddingRight: 1, children: [
+          Box({ flexDirection: 'row', gap: 2, children: left }), Box({ flexDirection: 'row', gap: 2, children: right })] })] });
   }).catch(($, e, next) => next(e));
 }
 
@@ -144,7 +148,7 @@ function radioControls(Text, Button, columns, { toggle, pick, scroll }) {
   const reason = radio === 'error' && (STATIONS[station].youtube ? 'Needs yt-dlp and ffplay' : 'Station unreachable');
   // The right end only explains a station that can't play.
   const status = reason ? (columns >= reason.length + 30 ? `⚠ ${reason}` : '⚠') : '';
-  const right = status && Text({ key: 'radio-status', dimColor: true, children: status });
+  const right = status ? [Text({ key: 'radio-status', dimColor: true, children: status })] : [];
   // Room for station names: the button, both arrows, the right end, and the gaps.
   const room = columns - 2 - 2 * 3 - status.length - 4;
   let [from, to] = [0, STATIONS.length];
@@ -180,7 +184,7 @@ function radioControls(Text, Button, columns, { toggle, pick, scroll }) {
       children: Text({ ...(chosen ? { bold: true, ...(playing ? { color: ORANGE } : {}) } : { dimColor: true }),
         children: STATIONS[index].name }) }));
   }
-  if (from > 0 || to < STATIONS.length) items.push(arrow('station-next', '›', 1, to < STATIONS.length));
+  if (from > 0 || to < STATIONS.length) right.push(arrow('station-next', '›', 1, to < STATIONS.length));
   return [items, right];
 }
 
