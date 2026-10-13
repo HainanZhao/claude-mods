@@ -14,7 +14,7 @@ terminal: Claude FM (the stream `/radio` opens in a browser) and 37 others.
 | Click | To |
 | --- | --- |
 | A station | Play it; click it again to stop. |
-| `▶` / `❚❚` | Play or pause. Small orange bars bounce at the row's end while it plays. |
+| `▶` / `❚❚` | Play or pause. While playing, the button and station turn orange. |
 | `‹` `›` | Scroll the stations. |
 
 Your station is remembered between sessions.

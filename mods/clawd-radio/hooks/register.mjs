@@ -47,9 +47,6 @@ let station = 0;
 // view on the selected station. `shown` is the window last drawn.
 let viewFrom = null;
 let shown = null;
-// A three-bar equalizer bounces at the row's end while a station plays.
-const EQ_FRAMES = ['▃▆▄', '▅▃▇', '▂▇▄', '▆▄▃', '▄▂▆', '▇▅▂'];
-let eqFrame = 0;
 let radio = 'off'; // off | tuning | on | error
 let radioStream = null;
 let radioGeneration = 0;
@@ -121,12 +118,11 @@ function radioControls(Text, Button, columns, { toggle, pick, scroll }) {
   const state = Button({ key: 'radio', plain: true, label: { off: 'Play', tuning: 'Tuning', on: 'Pause', error: 'Retry' }[radio],
     onPress: toggle, children: Text({ ...tone, children: glyph }) });
   const reason = radio === 'error' && (STATIONS[station].youtube ? 'Needs yt-dlp and ffplay' : 'Station unreachable');
-  // The right end: small orange bars bouncing while a station plays, or why it can't.
-  const status = reason ? (columns >= reason.length + 30 ? `⚠ ${reason}` : '⚠')
-    : playing ? EQ_FRAMES[eqFrame % EQ_FRAMES.length] : '';
-  const right = status && Text({ ...(playing ? { color: ORANGE } : { dimColor: true }), children: status });
+  // The right end only explains a station that can't play.
+  const status = reason ? (columns >= reason.length + 30 ? `⚠ ${reason}` : '⚠') : '';
+  const right = status && Text({ key: 'radio-status', dimColor: true, children: status });
   // Room for station names: the button, both arrows, the right end, and the gaps.
-  const room = columns - 2 - 2 * 3 - Math.max(3, status.length) - 4;
+  const room = columns - 2 - 2 * 3 - status.length - 4;
   let [from, to] = [0, STATIONS.length];
   if (span(from, to) > room + 6 && viewFrom !== null) {
     // Scrolled: fill forward from where the arrows left the view, and back
@@ -234,16 +230,9 @@ async function playRadio($) {
     radioStream = stream;
     radio = 'on';
     $.ui.invalidate('ui.render');
-    // ffplay's stderr status line keeps this loop turning, so a stop is seen
-    // promptly; it also paces the equalizer.
-    let lastBeat = -Infinity;
+    // ffplay's stderr status line keeps this loop turning, so a stop is seen promptly.
     for await (const _ of stream) {
       if (radioStream !== stream) break;
-      const time = await $.clock.now();
-      if (time - lastBeat < 200) continue;
-      lastBeat = time;
-      eqFrame += 1;
-      $.ui.invalidate('ui.render');
     }
     if (mine !== radioGeneration) return;
     radioStream = null;

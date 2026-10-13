@@ -31,8 +31,8 @@ describe('clawd radio', () => {
   // A playing radio keeps working, so each press waits out the harness's settle
   // bound; tests that play get more than the default five seconds.
 
-  test('play and pause control the selected station, with bars bouncing while it plays', { timeoutMs: 15000 }, async ($, on) => {
-    const clock = mock.clock(on);
+  test('play and pause control the selected station', { timeoutMs: 15000 }, async ($, on) => {
+    mock.clock(on);
     on('ui.render', coreBand);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
     const runs: (readonly string[])[] = [];
@@ -44,10 +44,8 @@ describe('clawd radio', () => {
     const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     expect(await selected(ui)).toBe('Claude FM');
     const button = async () => (await ui.find({ key: 'radio' }))?.text;
-    const bars = async () => (await ui.findAll({ type: 'Text' })).find((text: any) => /^[▁-█]{3}$/.test(text.text))?.text;
     expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Play');
     expect(await button()).toBe('▶ ');
-    expect(await bars()).toBeUndefined();
     await ui.press({ key: 'radio' });
     await settle();
     expect(runs[0]?.[0]).toBe('yt-dlp');
@@ -55,12 +53,8 @@ describe('clawd radio', () => {
     await ui.redraw();
     expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Pause');
     expect(await button()).toBe('❚❚');
-    const playing = await bars();
-    expect(playing).toMatch(/^[▁-█]{3}$/);
-    await clock.advance(250);
-    tick();
-    await settle();
-    expect(await bars()).not.toBe(playing);
+    // Nothing else on the row animates: the orange button and name say it's playing.
+    expect(await ui.find({ key: 'radio-status' })).toBeUndefined();
     await ui.press({ key: 'radio' });
     tick();
     await settle();
