@@ -1,0 +1,16 @@
+{
+  "name": "claude-mods",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Native Claude Code mods: Clawd Whip",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "npm run test:unit && npm run test:mod",
+    "test:unit": "node --test tests/*.test.mjs",
+    "test:mod": "claude plugin test mods/clawd-whip",
+    "validate": "claude plugin validate --strict mods/clawd-whip && claude plugin validate --strict .",
+    "sound:generate": "python3 scripts/generate-whip.py"
+  }
+}
