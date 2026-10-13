@@ -1,8 +1,9 @@
 // The host statically reads literal on(...) and $.noun.method(...) calls, so
 // every helper using $ stays in this file.
+const STREAMTHEWORLD = 'https://playerservices.streamtheworld.com/api/livestream-redirect/';
 // Claude FM is the live stream /radio opens in a browser. YouTube streams need
-// yt-dlp to find today's audio URL; the rest serve plain MP3 that ffplay reads.
-const STATIONS = [
+// yt-dlp to find today's audio URL; the rest are direct streams ffplay reads.
+const CATALOG = [
   { name: 'Claude FM', url: 'https://www.youtube.com/watch?v=tRsQsTMvPNg', youtube: true },
   { name: 'Lofi Girl', url: 'https://www.youtube.com/@LofiGirl/live', youtube: true },
   { name: 'Synthwave', url: 'https://www.youtube.com/watch?v=4xDzrJKXOOY', youtube: true },
@@ -41,7 +42,26 @@ const STATIONS = [
   { name: 'Folk', url: 'https://ice1.somafm.com/folkfwd-128-mp3' },
   { name: 'DEF CON', url: 'https://ice1.somafm.com/defcon-128-mp3' },
   { name: 'NTS', url: 'https://stream-relay-geo.ntslive.net/stream' },
+  // Singapore's Mediacorp and SPH stations, in English, Chinese, Malay and Tamil.
+  { name: 'Class 95', url: STREAMTHEWORLD + 'CLASS95AAC.aac', singapore: true },
+  { name: '987', url: STREAMTHEWORLD + '987FMAAC.aac', singapore: true },
+  { name: 'Kiss92', url: STREAMTHEWORLD + 'KISS_92AAC.aac', singapore: true },
+  { name: 'ONE FM 91.3', url: STREAMTHEWORLD + 'ONE_FM_913AAC.aac', singapore: true },
+  { name: 'Gold 905', url: STREAMTHEWORLD + 'GOLD905AAC.aac', singapore: true },
+  { name: 'CNA 938', url: STREAMTHEWORLD + '938NOWAAC.aac', singapore: true },
+  { name: 'Money 89.3', url: STREAMTHEWORLD + 'MONEY_893AAC.aac', singapore: true },
+  { name: 'Symphony 924', url: STREAMTHEWORLD + 'SYMPHONY924AAC.aac', singapore: true },
+  { name: 'YES 933', url: STREAMTHEWORLD + 'YES933AAC.aac', singapore: true },
+  { name: 'Love 972', url: STREAMTHEWORLD + 'LOVE972FMAAC.aac', singapore: true },
+  { name: 'Capital 958', url: STREAMTHEWORLD + 'CAPITAL958FMAAC.aac', singapore: true },
+  { name: 'UFM 100.3', url: STREAMTHEWORLD + 'UFM_1003AAC.aac', singapore: true },
+  { name: 'Hao 96.3', url: STREAMTHEWORLD + 'HAO_963AAC.aac', singapore: true },
+  { name: 'Ria 897', url: STREAMTHEWORLD + 'RIA897FMAAC.aac', singapore: true },
+  { name: 'Warna 942', url: STREAMTHEWORLD + 'WARNA942FMAAC.aac', singapore: true },
+  { name: 'Oli 968', url: STREAMTHEWORLD + 'OLI968FMAAC.aac', singapore: true },
 ];
+// The `stations` setting narrows the catalog: all, singapore, or international.
+let STATIONS = CATALOG;
 let station = 0;
 // The first station in view once the arrows have scrolled; null centres the
 // view on the selected station. `shown` is the window last drawn.
@@ -58,7 +78,11 @@ let wakeRadio = null;
 let active = false;
 let generation = 0;
 
-export function register(on) {
+export function register(on, options = {}) {
+  const only = options.stations;
+  STATIONS = only === 'singapore' ? CATALOG.filter(({ singapore }) => singapore)
+    : only === 'international' ? CATALOG.filter(({ singapore }) => !singapore)
+      : CATALOG;
   on('session.start', async ($, e, next) => {
     const mine = ++generation;
     active = false;

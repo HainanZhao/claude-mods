@@ -113,7 +113,7 @@ describe('clawd radio', () => {
       await ui.press({ key: 'station-next' });
     }
     const last = await stations(ui);
-    expect(last.at(-1)).toBe('NTS');
+    expect(last.at(-1)).toBe('Oli 968');
     expect(last[0]).toBe('‹');
   });
 
@@ -208,6 +208,22 @@ describe('clawd radio', () => {
     expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Retry');
     expect(await ui.find({ type: 'Text', text: '⚠ Needs yt-dlp and ffplay' })).toBeDefined();
   });
+
+  for (const [choice, first, last] of [['all', 'Claude FM', 'Oli 968'], ['singapore', 'Class 95', 'Oli 968'],
+    ['international', 'Claude FM', 'NTS']] as const) {
+    test(`the stations setting "${choice}" picks which stations the radio offers`, { options: { stations: choice } }, async ($, on) => {
+      mock.clock(on);
+      on('ui.render', coreBand);
+      on('session.start', ($, e) => ({ cwd: e.cwd }));
+      await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
+      const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
+      expect(await selected(ui)).toBe(first);
+      for (let pages = 0; (await stations(ui)).includes('›') && pages < 30; pages += 1) {
+        await ui.press({ key: 'station-next' });
+      }
+      expect((await stations(ui)).at(-1)).toBe(last);
+    });
+  }
 
   test('the radio closes the band, below other mods, and headless sessions draw nothing', async ($, on) => {
     mock.clock(on);

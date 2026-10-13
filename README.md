@@ -5,7 +5,8 @@ Two small mods for Claude Code. Install either or both.
 ## Clawd Radio
 
 A one-row radio above the prompt. Click a station to play it right in the
-terminal: Claude FM (the stream `/radio` opens in a browser) and 37 others.
+terminal: Claude FM (the stream `/radio` opens in a browser), lo-fi, pop, rap,
+rock, jazz, country and more, plus Singapore's 16 stations.
 
 ```
 ▶   ‹  Drone Zone  Deep Space  Top 100  PopTron  Indie Pop  Hip Hop  ›
@@ -17,7 +18,8 @@ terminal: Claude FM (the stream `/radio` opens in a browser) and 37 others.
 | `▶` / `❚❚` | Play or pause. While playing, the button and station turn orange. |
 | `‹` `›` | Scroll the stations. |
 
-Your station is remembered between sessions.
+Your station is remembered between sessions. To show only Singapore's stations,
+or only the international ones, set **Stations** in `/config`.
 
 ## Clawd
 
