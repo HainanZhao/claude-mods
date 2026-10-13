@@ -8,13 +8,13 @@ A one-row radio above the prompt. Click a station to play it right in the
 terminal: Claude FM (the stream `/radio` opens in a browser) and 37 others.
 
 ```
-▄▄▄  ‹  Drone Zone  Deep Space  Top 100  PopTron  Indie Pop  Hip Hop  ›     12 / 38
+▶   ‹  Drone Zone  Deep Space  Top 100  PopTron  Indie Pop  Hip Hop  ›
 ```
 
 | Click | To |
 | --- | --- |
 | A station | Play it; click it again to stop. |
-| `▄▄▄` | Play or stop. Gray when silent, orange bars while playing. |
+| `▶` / `❚❚` | Play or pause. Small orange bars bounce at the row's end while it plays. |
 | `‹` `›` | Scroll the stations. |
 
 Your station is remembered between sessions.

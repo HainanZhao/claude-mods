@@ -43,7 +43,7 @@ const STATIONS = [
   { name: 'NTS', url: 'https://stream-relay-geo.ntslive.net/stream' },
 ];
 let station = 0;
-// A three-bar equalizer marks the player's state; it bounces while one plays.
+// A three-bar equalizer bounces at the row's end while a station plays.
 const EQ_FRAMES = ['▃▆▄', '▅▃▇', '▂▇▄', '▆▄▃', '▄▂▆', '▇▅▂'];
 let eqFrame = 0;
 let radio = 'off'; // off | tuning | on | error
@@ -99,29 +99,28 @@ export function register(on) {
     // The radio closes the band, below whatever other mods draw.
     return Box({ flexDirection: 'column', children: [previous,
       Box({ key: 'radio-bar', flexDirection: 'row', justifyContent: 'space-between', width, children: [
-        Box({ flexDirection: 'row', gap: 2, children: left }), right] })] });
+        Box({ flexDirection: 'row', gap: 2, children: left }), ...(right ? [right] : [])] })] });
   }).catch(($, e, next) => next(e));
 }
 
 const ORANGE = '#d77757';
 
-// The radio row, laid out like a click wheel: the player's state, then the
-// stations as a carousel centred on the selected one, and on the right where
-// it sits in the list, or why it can't play.
+// The radio row, laid out like a click wheel: play/pause, then the stations as
+// a carousel centred on the selected one.
 function radioControls(Text, Button, columns, { toggle, pick, tune }) {
   const playing = radio === 'on';
-  // Silent, a solid gray block; tuning, a dimmer, lower one; playing, bouncing bars.
-  const bars = { off: '▄▄▄', tuning: '▂▂▂', on: EQ_FRAMES[eqFrame % EQ_FRAMES.length], error: '▄▄▄' }[radio];
-  const tone = { off: { color: '#808080' }, error: { color: '#808080' }, on: { color: ORANGE } }[radio] ?? { dimColor: true };
-  const state = Button({ key: 'radio', plain: true, label: { off: 'Play', tuning: 'Tuning', on: 'Stop', error: 'Retry' }[radio],
-    onPress: toggle, children: Text({ ...tone, children: bars }) });
+  // A play/pause button, two columns in every state so nothing beside it moves.
+  const glyph = { off: '▶ ', error: '▶ ', tuning: '⋯ ', on: '❚❚' }[radio];
+  const tone = playing ? { color: ORANGE } : radio === 'tuning' ? { dimColor: true } : {};
+  const state = Button({ key: 'radio', plain: true, label: { off: 'Play', tuning: 'Tuning', on: 'Pause', error: 'Retry' }[radio],
+    onPress: toggle, children: Text({ ...tone, children: glyph }) });
   const reason = radio === 'error' && (STATIONS[station].youtube ? 'Needs yt-dlp and ffplay' : 'Station unreachable');
-  const status = reason
-    ? (columns >= reason.length + 30 ? `⚠ ${reason}` : '⚠')
-    : `${station + 1} / ${STATIONS.length}`;
-  const right = Text({ key: 'radio-status', dimColor: true, children: status });
-  // Room for station names: the bars, both arrows, the status, and the gaps.
-  const room = columns - 3 - 2 * 3 - status.length - 4;
+  // The right end: small orange bars bouncing while a station plays, or why it can't.
+  const status = reason ? (columns >= reason.length + 30 ? `⚠ ${reason}` : '⚠')
+    : playing ? EQ_FRAMES[eqFrame % EQ_FRAMES.length] : '';
+  const right = status && Text({ ...(playing ? { color: ORANGE } : { dimColor: true }), children: status });
+  // Room for station names: the button, both arrows, the right end, and the gaps.
+  const room = columns - 2 - 2 * 3 - Math.max(3, status.length) - 4;
   const span = (from, to) => STATIONS.slice(from, to).reduce((sum, { name }) => sum + name.length + 2, 0);
   let [from, to] = [0, STATIONS.length];
   if (span(from, to) > room + 6) {

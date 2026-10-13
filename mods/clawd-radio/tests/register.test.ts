@@ -28,8 +28,10 @@ describe('clawd radio', () => {
     return () => ticks.splice(0).forEach(tick => tick());
   };
   const settle = () => new Promise(resolve => setTimeout(resolve, 10));
+  // A playing radio keeps working, so each press waits out the harness's settle
+  // bound; tests that play get more than the default five seconds.
 
-  test('the equalizer plays and stops the selected station, bouncing while it plays', async ($, on) => {
+  test('play and pause control the selected station, with bars bouncing while it plays', { timeoutMs: 15000 }, async ($, on) => {
     const clock = mock.clock(on);
     on('ui.render', coreBand);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
@@ -41,21 +43,23 @@ describe('clawd radio', () => {
     await $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work' });
     const ui = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal', component: 'AbovePrompt', props });
     expect(await selected(ui)).toBe('Claude FM');
-    const bars = async () => (await ui.find({ key: 'radio' }))?.text;
+    const button = async () => (await ui.find({ key: 'radio' }))?.text;
+    const bars = async () => (await ui.findAll({ type: 'Text' })).find((text: any) => /^[▁-█]{3}$/.test(text.text))?.text;
     expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Play');
-    expect(await bars()).toBe('▄▄▄');
+    expect(await button()).toBe('▶ ');
+    expect(await bars()).toBeUndefined();
     await ui.press({ key: 'radio' });
     await settle();
     expect(runs[0]?.[0]).toBe('yt-dlp');
     expect(spawned[0]).toEqual(['ffplay', '-nodisp', '-hide_banner', 'https://stream.example/live.m3u8']);
     await ui.redraw();
-    expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Stop');
+    expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Pause');
+    expect(await button()).toBe('❚❚');
     const playing = await bars();
     expect(playing).toMatch(/^[▁-█]{3}$/);
     await clock.advance(250);
     tick();
     await settle();
-    await ui.redraw();
     expect(await bars()).not.toBe(playing);
     await ui.press({ key: 'radio' });
     tick();
@@ -64,7 +68,7 @@ describe('clawd radio', () => {
     expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Play');
   });
 
-  test('the radio keeps playing when a task finishes', async ($, on) => {
+  test('the radio keeps playing when a task finishes', { timeoutMs: 15000 }, async ($, on) => {
     mock.clock(on);
     on('ui.render', coreBand);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
@@ -83,7 +87,7 @@ describe('clawd radio', () => {
     await settle();
     expect(killed).toBe(false);
     await ui.redraw();
-    expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Stop');
+    expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Pause');
   });
 
   test('the stations scroll as a carousel centred on the selected one', async ($, on) => {
@@ -95,7 +99,6 @@ describe('clawd radio', () => {
     const first = await stations(ui);
     expect(first[0]).toBe('Claude FM');
     expect(first.at(-1)).toBe('›');
-    expect(await ui.find({ type: 'Text', text: '1 / 38' })).toBeDefined();
     for (let i = 0; i < 10; i += 1) await ui.press({ key: 'station-next' });
     const middle = await stations(ui);
     expect(await selected(ui)).toBe('Top 100');
@@ -104,13 +107,12 @@ describe('clawd radio', () => {
     // Centred: about as many stations before the selected one as after it.
     const at = middle.indexOf('Top 100');
     expect(Math.abs(at - (middle.length - 1 - at))).toBeLessThanOrEqual(2);
-    expect(await ui.find({ type: 'Text', text: '11 / 38' })).toBeDefined();
     const tab = await $.ui.mount({ plugin: 'clawd-radio', surface: 'terminal',
       component: 'AbovePrompt', props: { ...props, bodyColumns: 34 } });
     expect(await stations(tab)).toEqual(['‹', 'Top 100', '›']);
   });
 
-  test('the selected station is bold, and orange while it plays', async ($, on) => {
+  test('the selected station is bold, and orange while it plays', { timeoutMs: 15000 }, async ($, on) => {
     mock.clock(on);
     on('ui.render', coreBand);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
@@ -127,7 +129,7 @@ describe('clawd radio', () => {
     expect((await name())?.props.color).toBe('#d77757');
   });
 
-  test('picking a station plays it, picking another retunes, picking the playing one stops it', async ($, on) => {
+  test('picking a station plays it, picking another retunes, picking the playing one stops it', { timeoutMs: 15000 }, async ($, on) => {
     mock.clock(on);
     on('ui.render', coreBand);
     on('session.start', ($, e) => ({ cwd: e.cwd }));
@@ -152,7 +154,7 @@ describe('clawd radio', () => {
     expect(spawned[1]).toEqual(['ffplay', '-nodisp', '-hide_banner', 'https://ice1.somafm.com/fluid-128-mp3']);
     await ui.redraw();
     expect(await selected(ui)).toBe('Fluid');
-    expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Stop');
+    expect((await ui.find({ key: 'radio' }))?.props.label).toBe('Pause');
     await ui.press({ key: 'station-4' });
     tick();
     await settle();
